@@ -1,4 +1,4 @@
-# Tborg
+# mborg
 
 **TODO: Add description**
 
@@ -6,19 +6,18 @@
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
 
-  1. Add `tborg` to your list of dependencies in `mix.exs`:
+  1. Add `mborg` to your list of dependencies in `mix.exs`:
 
     ```elixir
     def deps do
-      [{:tborg, "~> 0.1.0"}]
+      [{:mborg, "~> 0.1.0"}]
     end
     ```
 
-  2. Ensure `tborg` is started before your application:
+  2. Ensure `mborg` is started before your application:
 
     ```elixir
     def application do
-      [applications: [:tborg]]
+      [applications: [:mborg]]
     end
     ```
-
