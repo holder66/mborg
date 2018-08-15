@@ -1,0 +1,8 @@
+%{
+  "earmark": {:hex, :earmark, "1.2.5", "4d21980d5d2862a2e13ec3c49ad9ad783ffc7ca5769cf6ff891a4553fbaae761", [:mix], [], "hexpm"},
+  "elixir_ale": {:hex, :elixir_ale, "1.0.3", "030d417a932eb70a3ca9652e104e815d447a0e4e92fb45aaedce914a03c824b0", [:make, :mix], [{:elixir_make, "~> 0.4", [hex: :elixir_make, repo: "hexpm", optional: false]}], "hexpm"},
+  "elixir_make": {:hex, :elixir_make, "0.4.2", "332c649d08c18bc1ecc73b1befc68c647136de4f340b548844efc796405743bf", [:mix], [], "hexpm"},
+  "ex_doc": {:hex, :ex_doc, "0.18.4", "4406b8891cecf1352f49975c6d554e62e4341ceb41b9338949077b0d4a97b949", [:mix], [{:earmark, "~> 1.1", [hex: :earmark, repo: "hexpm", optional: false]}], "hexpm"},
+  "joystick": {:hex, :joystick, "0.2.0", "1d0cb18aec36563182e8b341204dab2bea94d3641d3bb90b35625e93e3c29de5", [:make, :mix], [{:elixir_make, "~> 0.4.0", [hex: :elixir_make, repo: "hexpm", optional: false]}], "hexpm"},
+  "picam": {:hex, :picam, "0.2.0", "bf29acc078dbce857c481834e07a251bc91145ca99ca31b9f1ff53f8bdd61b13", [:make, :mix], [{:elixir_make, "~> 0.4", [hex: :elixir_make, repo: "hexpm", optional: false]}], "hexpm"},
+}
