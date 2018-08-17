@@ -71,6 +71,8 @@ defmodule Mborg.JstickBoard do
       [@bx, :button, _] -> set_LEDs(board_pid, :blue)
       [@bsquare, :button, _] -> set_LEDs(board_pid, :pink)
       [@bcircle, :button, _] -> set_LEDs(board_pid, :red)
+      # use the "down" button to report battery voltage
+      [@bdown, :button, 0] -> show_board_voltage(board_pid)
       # use the "select" button to shut down the raspi
       [@bselect, :button, 0] -> System.cmd("sudo halt", [])
       # use the PS button to stop the motors
@@ -114,6 +116,11 @@ defmodule Mborg.JstickBoard do
     # IO.inspect [pid, color, r, g, b]
     Board.toggle_led_control(pid)
     Board.set_led(pid,r,g,b)
+  end
+
+  defp show_board_voltage(pid) do
+    voltage = Board.get_battery_reading(pid)
+    IO.puts("ThunderBorg board voltage: #{(round(voltage*100))/100}")
   end
 
   # defp stop_everything(board_pid, state) do
