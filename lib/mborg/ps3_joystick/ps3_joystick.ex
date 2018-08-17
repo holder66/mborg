@@ -64,17 +64,16 @@ defmodule Mborg.Ps3Joystick do
       [@bselect, :button, 1] -> MotorSequence.sequence
       # use the "start" button to do the LED wave, and enable the motor control
       [@bstart, :button, 1] -> LedWave.wave
-      # use the PS button to stop the motors, and stop the joystick process
-      [@bps, :button, 1] -> stop_everything(state)
+      # use the PS button to stop the joystick process
+      [@bps, :button, 1] -> stop_joystick(state)
       _ -> true
     end
 
     {:noreply, state}
   end
 
-  defp stop_everything(state) do
+  defp stop_joystick(state) do
     IO.inspect state
     Joystick.stop(state.js)
-    # Board.stop
   end
 end

@@ -145,6 +145,7 @@ defmodule Mborg.ThunderborgBoard.Board do
         {2, -1} -> @command_set_b_rev
         {_, _} -> @command_all_off
       end
+    # IO.inspect [command, power]
     I2C.write(pid, <<command, power>>)
   end
 
