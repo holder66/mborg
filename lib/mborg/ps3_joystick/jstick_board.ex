@@ -71,12 +71,15 @@ defmodule Mborg.JstickBoard do
       [@bx, :button, _] -> set_LEDs(board_pid, :blue)
       [@bsquare, :button, _] -> set_LEDs(board_pid, :pink)
       [@bcircle, :button, _] -> set_LEDs(board_pid, :red)
+      # use the "select" button to shut down the raspi
+      [@bselect, :button, 0] -> System.cmd("sudo halt", [])
       # use the PS button to stop the motors
       [@bps, :button, 1] -> Board.off(board_pid)
       # if an axis event, do motors
       [_, :axis, _] -> control_motors(board_pid, event)
       _ -> true
     end
+
 
     {:noreply, state}
   end
