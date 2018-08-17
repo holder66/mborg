@@ -20,4 +20,4 @@ defmodule Mborg.Controller do
 
 
 end
-Mborg.Controller.run
+# Mborg.Controller.run

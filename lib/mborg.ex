@@ -7,17 +7,18 @@ defmodule Mborg do
   mounted Pi Camera. This will require development of Artificial Intelligence
   based on work I've previously done on a nearest neighbour classifier using
   Hamming distances and neural network designs.
-
-  For the time being, run a demo with:
-  iex(1)> Mborg.Controller.run
-
-  stop a running joystick genserver process with:
-  iex(2)> Joystick.stop(v)
   """
 
   use Application
 
+  def run do
+    {:ok, _pid} = Mborg.JstickBoard.run
+  end
+
   def start(_type, _args) do
-    Supervisor.start_link
+    Mborg.Supervisor.start_link
   end
 end
+
+
+# Mborg.run

@@ -13,15 +13,16 @@ compile_time_purge_level: :info
 
 # You can configure for your application as:
 #
-#     config :tborg, key: :value
+#     config :mborg, key: :value
 #
 # And access this configuration in your application as:
 #
-#     Application.get_env(:tborg, :key)
+#     Application.get_env(:mborg, :key)
 #
 # Or configure a 3rd-party app:
 #
 #     config :logger, level: :info
+# config :logger, level: error
 #
 
 # It is also possible to import configuration files, relative to this

@@ -39,15 +39,15 @@ defmodule Mborg.JstickBoard do
   @axrjstickud 4
   @axr2 5
 
-
-
+  def run do
+    {:ok, pid} = start_link([])
+  end
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args)
     # start the thunderborg board
-    pid = Board.start_link()
+    # pid = Board.start_link()
   end
-
 
   # Callbacks
 
@@ -62,7 +62,7 @@ defmodule Mborg.JstickBoard do
   def handle_info({:joystick, %Event{number: nmbr, type: type, value: val}}, state) do
     # IO.puts "got joystick event: number: #{nmbr} type: #{type} #{val}"
     event = [nmbr, type, val]
-    # IO.inspect [event]
+    IO.inspect [event]
     board_pid = state.board
     # IO.inspect board_pid
     case event do
@@ -116,13 +116,13 @@ defmodule Mborg.JstickBoard do
     Board.set_led(pid,r,g,b)
   end
 
-  defp stop_everything(board_pid, state) do
-    Board.off(board_pid)
-    # stop_joystick(state)
-  end
-
-  defp stop_joystick(state) do
-    IO.inspect state
-    Joystick.stop(state.js)
-  end
+  # defp stop_everything(board_pid, state) do
+  #   Board.off(board_pid)
+  #   # stop_joystick(state)
+  # end
+  #
+  # defp stop_joystick(state) do
+  #   IO.inspect state
+  #   Joystick.stop(state.js)
+  # end
 end

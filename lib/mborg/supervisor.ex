@@ -1,9 +1,9 @@
-defmodule Mborg.Supervisor do
+defmodule Mborg.Mborg.Supervisor do
   use Supervisor
-  alias Mborg.{Controller, Ps3Joystick, Board}
+  alias Mborg.Mborg.{Controller, Ps3Joystick, Board}
 
   def start_link do
-    Mborg.Supervisor.start_link(__MODULE__, [])
+  Supervisor.start_link(__MODULE__, [])
   end
 
   def init(_) do
