@@ -67,17 +67,19 @@ defmodule Mborg.JstickBoard do
     board_pid = state.board
     # IO.inspect board_pid
     case event do
-      # if a shape button is pressed, flash the LEDs the corresponding color
-      [@btriangle, :button, _] -> set_LEDs(board_pid, :green)
-      [@bx, :button, _] -> set_LEDs(board_pid, :blue)
-      [@bsquare, :button, _] -> set_LEDs(board_pid, :pink)
-      [@bcircle, :button, _] -> set_LEDs(board_pid, :red)
+      # while a shape button is pressed, set the LEDs the corresponding color;
+      [@btriangle, :button, 1] -> set_LEDs(board_pid, :green)
+      [@bx, :button, 1] -> set_LEDs(board_pid, :blue)
+      [@bsquare, :button, 1] -> set_LEDs(board_pid, :pink)
+      [@bcircle, :button, 1] -> set_LEDs(board_pid, :red)
       # use the "down" button to report battery voltage
       [@bdown, :button, 0] -> show_board_voltage(board_pid)
       # use the "select" button to shut down the raspi
-      [@bselect, :button, 0] -> System.cmd("sudo halt", [])
+      [@bselect, :button, 0] -> halt_raspi(board_pid)
       # use the PS button to stop the motors
-      [@bps, :button, 1] -> Board.off(board_pid)
+      [@bps, :button, 1] -> stop_motors(board_pid, state)
+      # on button release, go back to monitoring battery voltage
+      [_, :button, 0] -> leds_monitor_battery(board_pid)
       # if an axis event, do motors
       [_, :axis, _] -> control_motors(board_pid, event)
       _ -> true
@@ -114,11 +116,24 @@ defmodule Mborg.JstickBoard do
   end
 
   defp set_LEDs(pid, color) do
-    color_values = %{green: [0,255,0], blue: [0,0,255], red: [255,0,0], pink: [255,51,51]}
+    color_values = %{green: [0,255,0], blue: [0,0,255], red: [255,0,0], pink: [255,51,51], off: [0,0,0]}
     {:ok, [r,g,b]} = Map.fetch(color_values, color)
     # IO.inspect [pid, color, r, g, b]
-    Board.toggle_led_control(pid)
+    # if the LEDs are being controlled by battery voltage, toggle their state
+    if Board.get_led_monitor_state(pid) do
+      Board.toggle_led_control(pid)
+    end
     Board.set_led(pid,r,g,b)
+  end
+
+  defp leds_monitor_battery(pid) do
+    # if the LEDs are not being controlled by battery voltage, toggle their state
+    ledstate = Board.get_led_monitor_state(pid)
+    IO.inspect ledstate
+    if ledstate == 0 do
+      IO.puts "toggling state"
+      Board.toggle_led_control(pid)
+    end
   end
 
   defp show_board_voltage(pid) do
@@ -126,10 +141,18 @@ defmodule Mborg.JstickBoard do
     IO.puts("ThunderBorg board voltage: #{(round(voltage*100))/100}")
   end
 
-  # defp stop_everything(board_pid, state) do
-  #   Board.off(board_pid)
-  #   # stop_joystick(state)
-  # end
+  defp halt_raspi(pid) do
+    # set LEDs off
+    set_LEDs(pid, :off)
+    IO.puts("Shutting the Raspberry Pi down now!")
+    System.cmd("sudo", ["halt"])
+  end
+
+  defp stop_motors(board_pid, state) do
+    IO.puts("Stopping all motors!")
+    Board.off(board_pid)
+    # stop_joystick(state)
+  end
   #
   # defp stop_joystick(state) do
   #   IO.inspect state
