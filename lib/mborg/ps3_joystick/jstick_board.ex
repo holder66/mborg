@@ -118,7 +118,6 @@ defmodule Mborg.JstickBoard do
   defp set_LEDs(pid, color) do
     color_values = %{green: [0,255,0], blue: [0,0,255], red: [255,0,0], pink: [255,51,51], off: [0,0,0]}
     {:ok, [r,g,b]} = Map.fetch(color_values, color)
-    # IO.inspect [pid, color, r, g, b]
     # if the LEDs are being controlled by battery voltage, toggle their state
     if Board.get_led_monitor_state(pid) do
       Board.toggle_led_control(pid)
@@ -128,10 +127,8 @@ defmodule Mborg.JstickBoard do
 
   defp leds_monitor_battery(pid) do
     # if the LEDs are not being controlled by battery voltage, toggle their state
-    ledstate = Board.get_led_monitor_state(pid)
-    IO.inspect ledstate
-    if ledstate == 0 do
-      IO.puts "toggling state"
+    if Board.get_led_monitor_state(pid) == 0
+     do
       Board.toggle_led_control(pid)
     end
   end
