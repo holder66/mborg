@@ -1,6 +1,6 @@
 defmodule Mborg.Mborg.Supervisor do
   use Supervisor
-  alias Mborg.Mborg.{Controller, Ps3Joystick, Board}
+  alias Mborg.Mborg.{Controller, Ps3Joystick, Board, ControllerState}
 
   def start_link do
   Supervisor.start_link(__MODULE__, [])
@@ -10,7 +10,8 @@ defmodule Mborg.Mborg.Supervisor do
     children = [
       worker(Controller, []),
       worker(Ps3Joystick, []),
-      worker(Board, [])
+      worker(Board, []),
+      worker(ControllerState, [])
     ]
 
     supervise(children, strategy: :one_for_one)

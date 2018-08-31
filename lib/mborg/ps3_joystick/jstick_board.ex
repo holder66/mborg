@@ -4,6 +4,7 @@ defmodule Mborg.JstickBoard do
   alias Joystick
   alias Joystick.Event
   alias Mborg.ThunderborgBoard.{Board}
+  alias Mborg.ControllerState
 
   # start with: iex(1)> {:ok, js} = Mborg.JstickBoard.start_link([])
 
@@ -82,7 +83,6 @@ defmodule Mborg.JstickBoard do
       _ -> true
     end
 
-
     {:noreply, state}
   end
 
@@ -92,12 +92,15 @@ defmodule Mborg.JstickBoard do
     dir = direction(value)
     power = round(abs(value)/(999/255))
     case number do
+      @axljsticklr -> ControllerState.set_turn_values({dir, power})
       @axljstickud -> both_motors(board_pid, dir, power)
       _ -> true
     end
   end
 
   defp both_motors(board_pid, direction, power) do
+    # turn_value = ControllerState.get_turn_values()
+    # IO.inspect turn_value
     Board.command_motor(board_pid, 1, direction, power)
     Board.command_motor(board_pid, 2, direction, power)
   end

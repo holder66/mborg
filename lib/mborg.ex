@@ -21,4 +21,4 @@ defmodule Mborg do
 end
 
 
-# Mborg.run
+Mborg.run
