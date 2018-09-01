@@ -1,4 +1,4 @@
-defmodule Mborg.ThunderborgBoard.Board do
+defmodule Mborg.Mborg.ThunderborgBoard.Board do
   @moduledoc """
   Library for controlling the ThunderBorg motor control board. Makes use of
   the I2C functions in elixir_ale.

@@ -1,4 +1,4 @@
-defmodule Mborg.ControllerState do
+defmodule Mborg.Mborg.ControllerState do
   use GenServer
 
   #####

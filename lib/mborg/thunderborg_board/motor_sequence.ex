@@ -1,4 +1,4 @@
-defmodule Mborg.ThunderborgBoard.MotorSequence do
+defmodule Mborg.Mborg.ThunderborgBoard.MotorSequence do
   @moduledoc """
   Simple example of a motor sequence script.
   Run using:
@@ -9,7 +9,7 @@ defmodule Mborg.ThunderborgBoard.MotorSequence do
   "tbSequence.py" on the piborg.org website.
   """
 
-  alias Mborg.ThunderborgBoard.Board
+  alias Mborg.Mborg.ThunderborgBoard.Board
 
 
   @doc """

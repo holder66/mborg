@@ -1,4 +1,4 @@
-defmodule Mborg.ThunderborgBoard.LedWave do
+defmodule Mborg.Mborg.ThunderborgBoard.LedWave do
   @moduledoc """
   This script shows a soothing wave pattern using the LEDs.
   It shows how the LEDs can be controlled to produce a large
@@ -9,7 +9,7 @@ defmodule Mborg.ThunderborgBoard.LedWave do
   Tborg.TbLedWave.wave()
   """
 
-  alias Mborg.ThunderborgBoard.Board
+  alias Mborg.Mborg.ThunderborgBoard.Board
 
   @doc """
   Cycle through a range of values to set led colour to

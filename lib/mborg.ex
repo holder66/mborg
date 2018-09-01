@@ -12,7 +12,7 @@ defmodule Mborg do
   use Application
 
   def run do
-    {:ok, _pid} = Mborg.JstickBoard.run
+    {:ok, _pid} = Mborg.Mborg.JstickBoard.run
   end
 
   def start(_type, _args) do
