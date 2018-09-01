@@ -4,7 +4,7 @@ defmodule Mborg.Mborg.JstickBoard do
   alias Joystick
   alias Joystick.Event
   alias Mborg.Mborg.ThunderborgBoard.Board
-  alias Mborg.Mborg.ControllerState
+  # alias Mborg.Mborg.ControllerState
 
   # start with: iex(1)> {:ok, js} = Mborg.JstickBoard.start_link([])
 
@@ -46,15 +46,13 @@ defmodule Mborg.Mborg.JstickBoard do
 
   def start_link(args) do
     GenServer.start_link(__MODULE__, args)
-    # start the thunderborg board
-    # pid = Board.start_link()
   end
 
   # Callbacks
 
   def init([]) do
     # start the thunderborg board
-    pid = Board.start_link()
+    pid = Board.start_link
     {:ok, js} = Joystick.start_link(0, self())
     state = %{js: js, board: pid}
     {:ok, state}
