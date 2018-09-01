@@ -15,7 +15,8 @@ Hamming distances and neural network designs.
 button on the controller until light one comes on steady.
 4. In a terminal on your computer, ssh in to the MonsterBorg, eg: `ssh pi@10.0.1.60`
 5. Switch directories to mborg: pi@monsterborg:~ $ `cd mborg`
-6. Compile the project and open IEx: pi@monsterborg:~/mborg $ `iex -S mix`
+6. Compile the project and open IEx: pi@monsterborg:~/mborg $ `iex -S mix`. Note that
+the ThunderBorg board has to powered up for the compilation step to run.
 7. iex(1)> `Mborg.run`
 8. Test for correct functioning by using the four right-hand buttons marked with
 a triangle, circle, etc to flash the ThunderBorg LEDs the color corresponding to

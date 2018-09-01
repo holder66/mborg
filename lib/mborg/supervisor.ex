@@ -9,8 +9,8 @@ defmodule Mborg.Mborg.Supervisor do
   def init(_) do
     children = [
       worker(ControllerState, []),
-      worker(JstickBoard, []),
-      worker(Board, [])
+      worker(Board, []),
+      worker(JstickBoard, [])
     ]
 
     supervise(children, strategy: :one_for_one)

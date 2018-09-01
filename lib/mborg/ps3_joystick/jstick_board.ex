@@ -3,7 +3,7 @@ defmodule Mborg.Mborg.JstickBoard do
 
   alias Joystick
   alias Joystick.Event
-  alias Mborg.Mborg.ThunderborgBoard.Board
+  alias Mborg.Mborg.Board
   # alias Mborg.Mborg.ControllerState
 
   # start with: iex(1)> {:ok, js} = Mborg.JstickBoard.start_link([])
@@ -13,35 +13,35 @@ defmodule Mborg.Mborg.JstickBoard do
   # Joystick/controller number mappings:
   # Mappings for PS3 controller buttons:
 
-  @bx 0
-  @bcircle 1
-  @btriangle 2
-  @bsquare 3
-  @bl1 4
-  @br1 5
-  @bl2 6
-  @br2 7
-  @bselect 8
-  @bstart 9
-  @bps 10
-  @bljstick 11
-  @brjstick 12
-  @bup 13
-  @bdown 14
-  @bleft 15
-  @bright 16
+    @bx 0
+    @bcircle 1
+    @btriangle 2
+    @bsquare 3
+#   @bl1 4
+#   @br1 5
+#   @bl2 6
+#   @br2 7
+    @bselect 8
+#   @bstart 9
+    @bps 10
+#   @bljstick 11
+#   @brjstick 12
+#   @bup 13
+    @bdown 14
+#   @bleft 15
+#   @bright 16
 
   # Mappings for PS3 controller axes:
 
-  @axljsticklr 0
-  @axljstickud 1
-  @axl2 2
-  @axrjsticklr 3
-  @axrjstickud 4
-  @axr2 5
+    # @axljsticklr 0
+    @axljstickud 1
+  # @axl2 2
+  # @axrjsticklr 3
+  # @axrjstickud 4
+  # @axr2 5
 
   def run do
-    {:ok, pid} = start_link([])
+    {:ok, _pid} = start_link([])
   end
 
   def start_link(args) do
@@ -52,6 +52,7 @@ defmodule Mborg.Mborg.JstickBoard do
 
   def init([]) do
     # start the thunderborg board
+    # pid = Board.start_link("i2c-1", 0x15)
     pid = Board.start_link
     {:ok, js} = Joystick.start_link(0, self())
     state = %{js: js, board: pid}
@@ -143,7 +144,7 @@ defmodule Mborg.Mborg.JstickBoard do
     System.cmd("sudo", ["halt"])
   end
 
-  defp stop_motors(board_pid, state) do
+  defp stop_motors(board_pid, _state) do
     IO.puts("Stopping all motors!")
     Board.off(board_pid)
     # stop_joystick(state)

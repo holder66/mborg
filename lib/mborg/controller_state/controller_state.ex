@@ -5,8 +5,9 @@ defmodule Mborg.Mborg.ControllerState do
 
   # External API
 
-  def start_link({direction, power}) do
-    GenServer.start_link(__MODULE__, {direction, power}, name: :controller_state)
+  # def start_link({direction, power}) do
+  def start_link do
+    GenServer.start_link(__MODULE__, {}, name: :controller_state)
     # GenServer.start_link(__MODULE__, :ok, opts)
   end
 
@@ -21,6 +22,7 @@ defmodule Mborg.Mborg.ControllerState do
   # Callbacks
 
   def init({direction, power}) do
+    IO.puts "starting ControllerState"
     {:ok, {direction, power}}
   end
 

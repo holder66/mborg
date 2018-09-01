@@ -9,7 +9,7 @@ defmodule Mborg.Mborg.ThunderborgBoard.MotorSequence do
   "tbSequence.py" on the piborg.org website.
   """
 
-  alias Mborg.Mborg.ThunderborgBoard.Board
+  alias Mborg.Mborg.Board
 
 
   @doc """

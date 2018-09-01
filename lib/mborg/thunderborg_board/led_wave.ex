@@ -9,7 +9,7 @@ defmodule Mborg.Mborg.ThunderborgBoard.LedWave do
   Tborg.TbLedWave.wave()
   """
 
-  alias Mborg.Mborg.ThunderborgBoard.Board
+  alias Mborg.Mborg.Board
 
   @doc """
   Cycle through a range of values to set led colour to
