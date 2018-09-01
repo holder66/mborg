@@ -24,9 +24,10 @@ the color on the button.
 10. You should now be able to unplug the controller from the raspi. This may
 crash the process. If so, restart with Mborg.run. The controller should now
 operate the MonsterBorg over bluetooth.
-11. If you get a "[warn]  Got late event...", message, you will have to kill the
-running process, using: `{:ok, js} = v` ; then `Process.exit(js, :kill)` ; then
-restart using `Mborg.run`
+11. If you get a "[warn]  Got late event...", message, try unplugging the controller
+if it's still connected, and restart with Mborg.run. If this does not help, you 
+may need make a change to a source file (eg a comment), recompile, and
+restart with Mborg.run.
 
 
 ## Installation
