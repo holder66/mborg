@@ -13,6 +13,7 @@ defmodule Mborg do
 
   def run do
     {:ok, _pid} = Mborg.Mborg.JstickBoard.run
+    Mborg.Supervisor.start_link
   end
 
   def start(_type, _args) do
@@ -21,4 +22,4 @@ defmodule Mborg do
 end
 
 
-Mborg.run
+# Mborg.run

@@ -4,11 +4,17 @@ defmodule Mborg.Mborg.JstickBoard do
   alias Joystick
   alias Joystick.Event
   alias Mborg.Mborg.Board
-  # alias Mborg.Mborg.ControllerState
+  alias Mborg.Mborg.ControllerState
 
   # start with: iex(1)> {:ok, js} = Mborg.JstickBoard.start_link([])
 
   # stop a running joystick genserver process with: iex(2)> Joystick.stop(js)
+  
+  # Motor Control mappings
+  @leftmotor 2
+  @rightmotor 1
+  @motorpolarity -1
+  @maxmotorpower 255
 
   # Joystick/controller number mappings:
   # Mappings for PS3 controller buttons:
@@ -32,13 +38,22 @@ defmodule Mborg.Mborg.JstickBoard do
 #   @bright 16
 
   # Mappings for PS3 controller axes:
-
-    # @axljsticklr 0
+  
+  # @axljsticklr 0
     @axljstickud 1
   # @axl2 2
-  # @axrjsticklr 3
+    @axrjsticklr 3
   # @axrjstickud 4
   # @axr2 5
+  
+  # Attributes for joystick direction
+  @upispositive 1
+  @rightispositive -1
+  
+  # Attributes for MonsterBorg physics
+  @turnthreshold (0.05 * @maxmotorpower)
+  @turnparameter 0.1
+  @turnpowerparameter 0.2
 
   def run do
     {:ok, _pid} = start_link([])
@@ -52,19 +67,18 @@ defmodule Mborg.Mborg.JstickBoard do
 
   def init([]) do
     # start the thunderborg board
-    # pid = Board.start_link("i2c-1", 0x15)
     pid = Board.start_link
     {:ok, js} = Joystick.start_link(0, self())
     state = %{js: js, board: pid}
+    IO.puts "Firing up the Thunderborg Board"
     {:ok, state}
   end
 
   def handle_info({:joystick, %Event{number: nmbr, type: type, value: val}}, state) do
     # IO.puts "got joystick event: number: #{nmbr} type: #{type} #{val}"
     event = [nmbr, type, val]
-    IO.inspect [event]
+    # IO.inspect [event]
     board_pid = state.board
-    # IO.inspect board_pid
     case event do
       # while a shape button is pressed, set the LEDs the corresponding color;
       [@btriangle, :button, 1] -> set_LEDs(board_pid, :green)
@@ -90,28 +104,68 @@ defmodule Mborg.Mborg.JstickBoard do
   defp control_motors(board_pid, [number, _, value]) do
     # IO.inspect [number, direction(value), round(abs(value)/(999/255))]
     # @axljstickud controls forward and backward, @axljsticklr controls turning
+    # also correct the direction signs to give up as positive, right as positive
     dir = direction(value)
-    power = round(abs(value)/(999/255))
+    power = motor_power(value)
     case number do
-      # @axljsticklr -> ControllerState.set_turn_values({dir, power})
-      @axljstickud -> both_motors(board_pid, dir, power)
+      # if a turn joystick event, save its state
+      @axrjsticklr -> ControllerState.set_turn_values({dir * @rightispositive, power})
+      # if a forward/backward joystick event, operate motors
+      @axljstickud -> operate_motors(board_pid, dir * @upispositive * @motorpolarity, power)
       _ -> true
     end
   end
 
-  defp both_motors(board_pid, direction, power) do
-    # turn_value = ControllerState.get_turn_values()
-    # IO.inspect turn_value
-    Board.command_motor(board_pid, 1, direction, power)
-    Board.command_motor(board_pid, 2, direction, power)
+  defp operate_motors(board_pid, forwarddirection, forwardpower) do
+    # get the saved turn state
+    {turndirection, turnpower} = ControllerState.get_turn_values()
+    # calculate left and right motor direction and power
+    {leftdir, leftpwr, rightdir, rightpwr} = cond do
+      # if turn power is less than @turnthreshold, return equal power to both sides
+      turnpower < @turnthreshold ->
+        {forwarddirection, forwardpower, forwarddirection, forwardpower}
+      # in other situations, use the device physics.
+      true -> 
+        monsterborg_physics(forwarddirection, forwardpower, turndirection, turnpower)
+    end
+    # IO.inspect [leftdir, leftpwr, rightdir, rightpwr]
+    Board.command_motor(board_pid, @leftmotor, leftdir, round(leftpwr * 2.55))
+    Board.command_motor(board_pid, @rightmotor, rightdir, round(rightpwr * 2.55))
+  end
+  
+  def monsterborg_physics(forwarddirection, forwardpower, turndirection, turnpower) do
+    # when turnpower is greater than threshold, decrease power on the turning side, and 
+    # increase power on the opposide side, up to the maximum for the motors.
+    # the amount of increase/decrease is typically balanced, but we may need a "trim".
+    # coefficient for increase/decrease can be varied.
+    # consider using a button to make "tank" type turns, where the direction of the 
+    # motors on the opposide side of the turn reverses.
+    # to facilitate playing around with the physics, we will use integers from 0 to 100
+    # for power values
+    # IO.inspect ["physics: ", forwarddirection, forwardpower, turndirection, turnpower]
+    poweradjust = round(turnpower * @turnpowerparameter + forwardpower * @turnparameter)
+    leftpwr = constrain(forwardpower - turndirection * poweradjust)
+    rightpwr = constrain(forwardpower + turndirection * poweradjust)
+    {forwarddirection, leftpwr, forwarddirection, rightpwr}
+  end
+  
+  defp constrain(value, lowerlimit \\ 0, upperlimit \\ 100) do
+    cond do
+      value < lowerlimit -> lowerlimit
+      value > upperlimit -> upperlimit
+      true -> value
+    end
+  end
+  
+  defp motor_power(joystickvalue) do
+    round(abs(joystickvalue)/10)
   end
 
   defp direction(val) do
     cond do
-      val != 0 -> -1 * round(val / abs(val))
-      true -> -1
+      val != 0 -> round(val / abs(val))
+      true -> 1
     end
-    # val * -1 # since the joystick axis is inverted
   end
 
   defp set_LEDs(pid, color) do

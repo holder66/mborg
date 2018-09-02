@@ -7,8 +7,7 @@ defmodule Mborg.Mborg.ControllerState do
 
   # def start_link({direction, power}) do
   def start_link do
-    GenServer.start_link(__MODULE__, {}, name: :controller_state)
-    # GenServer.start_link(__MODULE__, :ok, opts)
+    GenServer.start_link(__MODULE__, %{}, name: :controller_state)
   end
 
   def set_turn_values({direction, power}) do
@@ -21,12 +20,13 @@ defmodule Mborg.Mborg.ControllerState do
 
   # Callbacks
 
-  def init({direction, power}) do
-    IO.puts "starting ControllerState"
-    {:ok, {direction, power}}
+  def init(_) do
+    state = {0,0}
+    
+    {:ok, state}
   end
 
-  def handle_cast({:set_turn_values, {direction, power}}, {direction, power}) do
+  def handle_cast({:set_turn_values, {direction, power}}, {_dir, _pwr}) do
 
     {:noreply, {direction, power}}
   end
