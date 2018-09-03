@@ -10,6 +10,8 @@ defmodule Mborg do
   """
 
   use Application
+  
+  import Picam
 
   def run do
     {:ok, _pid} = Mborg.Mborg.JstickBoard.run
@@ -20,6 +22,5 @@ defmodule Mborg do
     Mborg.Supervisor.start_link
   end
 end
-
 
 # Mborg.run

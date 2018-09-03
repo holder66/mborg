@@ -69,6 +69,7 @@ defmodule Mborg.Mborg.JstickBoard do
     # start the thunderborg board
     pid = Board.start_link
     {:ok, js} = Joystick.start_link(0, self())
+    IO.puts "Connecting to the PS3 controller"
     state = %{js: js, board: pid}
     IO.puts "Firing up the Thunderborg Board"
     {:ok, state}
@@ -133,7 +134,7 @@ defmodule Mborg.Mborg.JstickBoard do
     Board.command_motor(board_pid, @rightmotor, rightdir, round(rightpwr * 2.55))
   end
   
-  def monsterborg_physics(forwarddirection, forwardpower, turndirection, turnpower) do
+  defp monsterborg_physics(forwarddirection, forwardpower, turndirection, turnpower) do
     # when turnpower is greater than threshold, decrease power on the turning side, and 
     # increase power on the opposide side, up to the maximum for the motors.
     # the amount of increase/decrease is typically balanced, but we may need a "trim".
@@ -148,6 +149,7 @@ defmodule Mborg.Mborg.JstickBoard do
     rightpwr = constrain(forwardpower + turndirection * poweradjust)
     {forwarddirection, leftpwr, forwarddirection, rightpwr}
   end
+  
   
   defp constrain(value, lowerlimit \\ 0, upperlimit \\ 100) do
     cond do

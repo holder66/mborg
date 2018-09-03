@@ -6,6 +6,7 @@ defmodule Mborg.Mborg.Board do
 
   require ElixirALE.I2C
   require Logger
+  require Picam
 
   alias ElixirALE.I2C
 
