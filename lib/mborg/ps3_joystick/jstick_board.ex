@@ -145,18 +145,16 @@ defmodule Mborg.Mborg.JstickBoard do
     
 
   defp operate_motors(board_pid, forwarddirection, forwardpower, turndirection, turnpower) do
-    {leftdir, leftpwr, rightdir, rightpwr} = cond do
-      # if turn power is less than @turnthreshold, return equal power to both sides
-      # this would be written as turnpower < @turnthreshold
-      turnpower == 0 ->
-        {forwarddirection, forwardpower, forwarddirection, forwardpower}
-      # in other situations, use the device physics.
-      true -> 
-        monsterborg_physics(forwarddirection, forwardpower, turndirection, turnpower)
+    # if if turn power is less than @turnthreshold, run both motors with one command
+    if turnpower == 0 do
+      Board.command_motor(board_pid, 0, forwarddirection, round(forwardpower * 2.55))
+    else
+      {leftdir, leftpwr, rightdir, rightpwr} = monsterborg_physics(forwarddirection, forwardpower, turndirection, turnpower)
+      Board.command_motor(board_pid, @leftmotor, leftdir, round(leftpwr * 2.55))
+      Board.command_motor(board_pid, @rightmotor, rightdir, round(rightpwr * 2.55))
     end
     # IO.inspect [System.monotonic_time(10), leftdir, leftpwr, rightdir, rightpwr]
-    Board.command_motor(board_pid, @leftmotor, leftdir, round(leftpwr * 2.55))
-    Board.command_motor(board_pid, @rightmotor, rightdir, round(rightpwr * 2.55))
+    
   end
   
   defp monsterborg_physics(forwarddirection, forwardpower, turndirection, turnpower) do
