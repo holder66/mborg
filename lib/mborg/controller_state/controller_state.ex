@@ -9,8 +9,8 @@ defmodule Mborg.Mborg.ControllerState do
     GenServer.start_link(__MODULE__, %{}, name: :controller_state)
   end
   
-  def set_state({forwarddirection, forwardpower, turndirection, turnpower}) do
-    GenServer.cast(:controller_state, {:set_state, {forwarddirection, forwardpower, turndirection, turnpower}})
+  def set_state({forwarddir, forwardpower, turndir, turnpower}) do
+    GenServer.cast(:controller_state, {:set_state, {forwarddir, forwardpower, turndir, turnpower}})
   end
   
   def get_state do
@@ -25,14 +25,14 @@ defmodule Mborg.Mborg.ControllerState do
     {:ok, state}
   end
   
-  def handle_cast({:set_state, {forwarddirection, forwardpower, turndirection, turnpower}}, {_dir, _pwr, _turndir, _turnpwr}) do
+  def handle_cast({:set_state, {forwarddir, forwardpower, turndir, turnpower}}, {_dir, _pwr, _turndir, _turnpwr}) do
 
-    {:noreply, {forwarddirection, forwardpower, turndirection, turnpower}}
+    {:noreply, {forwarddir, forwardpower, turndir, turnpower}}
   end
 
-  def handle_call({:get_state}, _from, {forwarddirection, forwardpower, turndirection, turnpower}) do
+  def handle_call({:get_state}, _from, {forwarddir, forwardpower, turndir, turnpower}) do
     # IO.inspect state
 
-    {:reply, {forwarddirection, forwardpower, turndirection, turnpower}, {forwarddirection, forwardpower, turndirection, turnpower}}
+    {:reply, {forwarddir, forwardpower, turndir, turnpower}, {forwarddir, forwardpower, turndir, turnpower}}
   end
 end

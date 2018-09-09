@@ -147,15 +147,16 @@ defmodule Mborg.Mborg.JstickBoard do
   defp operate_motors(board_pid, forwarddirection, forwardpower, turndirection, turnpower) do
     # if if turn power is less than @turnthreshold, run both motors with one command
     if turnpower == 0 do
-      Board.command_motor(board_pid, 0, forwarddirection, round(forwardpower * 2.55))
+      Board.command_motor(board_pid, 0, forwarddirection, motor_power_value(forwardpower))
     else
       {leftdir, leftpwr, rightdir, rightpwr} = monsterborg_physics(forwarddirection, forwardpower, turndirection, turnpower)
-      Board.command_motor(board_pid, @leftmotor, leftdir, round(leftpwr * 2.55))
-      Board.command_motor(board_pid, @rightmotor, rightdir, round(rightpwr * 2.55))
+      Board.command_motor(board_pid, @leftmotor, leftdir, motor_power_value(leftpwr))
+      Board.command_motor(board_pid, @rightmotor, rightdir, motor_power_value(rightpwr))
     end
     # IO.inspect [System.monotonic_time(10), leftdir, leftpwr, rightdir, rightpwr]
-    
   end
+  
+  defp motor_power_value(value), do: round(value * 2.55)
   
   defp monsterborg_physics(forwarddirection, forwardpower, turndirection, turnpower) do
     # when turnpower is greater than threshold, decrease power on the turning side, and 
@@ -182,9 +183,7 @@ defmodule Mborg.Mborg.JstickBoard do
     end
   end
   
-  defp motor_power(joystickvalue) do
-    round(abs(joystickvalue)/10)
-  end
+  defp motor_power(joystickvalue), do: round(abs(joystickvalue)/10)
 
   defp direction(val) do
     cond do
@@ -238,9 +237,5 @@ defmodule Mborg.Mborg.JstickBoard do
     Board.off(board_pid)
     # stop_joystick(state)
   end
-  #
-  # defp stop_joystick(state) do
-  #   IO.inspect state
-  #   Joystick.stop(state.js)
-  # end
+
 end
