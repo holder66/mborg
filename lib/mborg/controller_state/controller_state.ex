@@ -5,35 +5,34 @@ defmodule Mborg.Mborg.ControllerState do
 
   # External API
 
-  # def start_link({direction, power}) do
   def start_link do
     GenServer.start_link(__MODULE__, %{}, name: :controller_state)
   end
-
-  def set_turn_values({direction, power}) do
-    GenServer.cast(:controller_state, {:set_turn_values, {direction, power}})
+  
+  def set_state({forwarddirection, forwardpower, turndirection, turnpower}) do
+    GenServer.cast(:controller_state, {:set_state, {forwarddirection, forwardpower, turndirection, turnpower}})
   end
-
-  def get_turn_values do
-    GenServer.call(:controller_state, {:get_turn_values})
+  
+  def get_state do
+    GenServer.call(:controller_state, {:get_state})
   end
 
   # Callbacks
 
   def init(_) do
-    state = {0,0}
+    state = {0,0,0,0}
     
     {:ok, state}
   end
+  
+  def handle_cast({:set_state, {forwarddirection, forwardpower, turndirection, turnpower}}, {_dir, _pwr, _turndir, _turnpwr}) do
 
-  def handle_cast({:set_turn_values, {direction, power}}, {_dir, _pwr}) do
-
-    {:noreply, {direction, power}}
+    {:noreply, {forwarddirection, forwardpower, turndirection, turnpower}}
   end
 
-  def handle_call({:get_turn_values}, _from, {direction, power}) do
+  def handle_call({:get_state}, _from, {forwarddirection, forwardpower, turndirection, turnpower}) do
     # IO.inspect state
 
-    {:reply, {direction, power}, {direction, power}}
+    {:reply, {forwarddirection, forwardpower, turndirection, turnpower}, {forwarddirection, forwardpower, turndirection, turnpower}}
   end
 end

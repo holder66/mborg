@@ -14,7 +14,7 @@ defmodule Mborg.Mborg.JstickBoard do
   @leftmotor 2
   @rightmotor 1
   @motorpolarity -1
-  @maxmotorpower 255
+  #  @maxmotorpower 255
 
   # Joystick/controller number mappings:
   # Mappings for PS3 controller buttons:
@@ -51,7 +51,7 @@ defmodule Mborg.Mborg.JstickBoard do
   @rightispositive -1
   
   # Attributes for MonsterBorg physics
-  @turnthreshold (0.05 * @maxmotorpower)
+  # @turnthreshold (0.03 * @maxmotorpower)
   @turnparameter 0.1
   @turnpowerparameter 0.2
 
@@ -81,6 +81,8 @@ defmodule Mborg.Mborg.JstickBoard do
     # IO.inspect [event]
     board_pid = state.board
     case event do
+      # if an axis event, do motors
+      [_, :axis, _] -> control_motors(board_pid, event)
       # while a shape button is pressed, set the LEDs the corresponding color;
       [@btriangle, :button, 1] -> set_LEDs(board_pid, :green)
       [@bx, :button, 1] -> set_LEDs(board_pid, :blue)
@@ -100,8 +102,6 @@ defmodule Mborg.Mborg.JstickBoard do
       [@bps, :button, 1] -> stop_motors(board_pid, state)
       # on button release, go back to monitoring battery voltage
       [_, :button, 0] -> leds_monitor_battery(board_pid)
-      # if an axis event, do motors
-      [_, :axis, _] -> control_motors(board_pid, event)
       _ -> true
     end
 
@@ -112,30 +112,49 @@ defmodule Mborg.Mborg.JstickBoard do
     # IO.inspect [number, direction(value), round(abs(value)/(999/255))]
     # @axljstickud controls forward and backward, @axljsticklr controls turning
     # also correct the direction signs to give up as positive, right as positive
+    # IO.inspect System.monotonic_time(10)
     dir = direction(value)
     power = motor_power(value)
     case number do
-      # if a turn joystick event, save its state
-      @axrjsticklr -> ControllerState.set_turn_values({dir * @rightispositive, power})
-      # if a forward/backward joystick event, operate motors
-      @axljstickud -> operate_motors(board_pid, dir * @upispositive * @motorpolarity, power)
+      #if a turn joystick event
+      @axrjsticklr -> do_turn_event(board_pid, dir * @rightispositive, power)
+      # if a forward/backward joystick event
+      @axljstickud -> do_forward_event(board_pid, dir * @upispositive * @motorpolarity, power)
       _ -> true
+      # _ -> IO.inspect "unused axis event"
     end
   end
+  
+  # for a turn joystick event, get the previous state, operate the motors
+  # using the previous forward direction and power with the new turn
+  # direction and power, and save the new state
+  defp do_turn_event(board_pid, turndirection, turnpower) do
+    {forwarddirection, forwardpower, _oldturndirection, _oldturnpower} = ControllerState.get_state()
+    operate_motors(board_pid, forwarddirection, forwardpower, turndirection, turnpower)
+    ControllerState.set_state({forwarddirection, forwardpower, turndirection, turnpower})
+  end
+  
+  # for a forward or backward joystick event, get the previous state, operate
+  # the motors using the previous turn direction and power and the new forward/backward
+  # direction and power, and save the new state
+  defp do_forward_event(board_pid, forwarddirection, forwardpower) do
+    {_oldforwarddirection, _oldforwardpower, turndirection, turnpower} = ControllerState.get_state()
+    operate_motors(board_pid, forwarddirection, forwardpower, turndirection, turnpower)
+    ControllerState.set_state({forwarddirection, forwardpower, turndirection, turnpower})
+  end
+    
 
-  defp operate_motors(board_pid, forwarddirection, forwardpower) do
-    # get the saved turn state
-    {turndirection, turnpower} = ControllerState.get_turn_values()
-    # calculate left and right motor direction and power
+  defp operate_motors(board_pid, forwarddirection, forwardpower, turndirection, turnpower) do
     {leftdir, leftpwr, rightdir, rightpwr} = cond do
       # if turn power is less than @turnthreshold, return equal power to both sides
-      turnpower < @turnthreshold ->
+      # this would be written as turnpower < @turnthreshold
+      turnpower == 0 ->
         {forwarddirection, forwardpower, forwarddirection, forwardpower}
       # in other situations, use the device physics.
       true -> 
         monsterborg_physics(forwarddirection, forwardpower, turndirection, turnpower)
     end
-    # IO.inspect [leftdir, leftpwr, rightdir, rightpwr]
+    # IO.inspect [System.monotonic_time(10), leftdir, leftpwr, rightdir, rightpwr]
     Board.command_motor(board_pid, @leftmotor, leftdir, round(leftpwr * 2.55))
     Board.command_motor(board_pid, @rightmotor, rightdir, round(rightpwr * 2.55))
   end
@@ -156,8 +175,8 @@ defmodule Mborg.Mborg.JstickBoard do
     {forwarddirection, leftpwr, forwarddirection, rightpwr}
   end
   
-  
-  defp constrain(value, lowerlimit \\ 0, upperlimit \\ 100) do
+  # constrain the upper limit for power to 95%, so as to limit the voltage drop to the processor
+  defp constrain(value, lowerlimit \\ 0, upperlimit \\ 95) do
     cond do
       value < lowerlimit -> lowerlimit
       value > upperlimit -> upperlimit
