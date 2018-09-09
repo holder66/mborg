@@ -8,7 +8,8 @@ defmodule Mborg.Mborg.Supervisor do
 
   def init(_) do
     children = [
-      worker(ControllerState, [])
+      worker(ControllerState, []),
+      worker(Picam.Camera, [])
       # worker(Board, []),
       # worker(JstickBoard, [])
     ]

@@ -32,10 +32,10 @@ defmodule Mborg.Mborg.JstickBoard do
     @bps 10
 #   @bljstick 11
 #   @brjstick 12
-#   @bup 13
+    @bup 13
     @bdown 14
-#   @bleft 15
-#   @bright 16
+    @bleft 15
+    @bright 16
 
   # Mappings for PS3 controller axes:
   
@@ -88,6 +88,12 @@ defmodule Mborg.Mborg.JstickBoard do
       [@bcircle, :button, 1] -> set_LEDs(board_pid, :red)
       # use the "down" button to report battery voltage
       [@bdown, :button, 0] -> show_board_voltage(board_pid)
+      # use the "up" button to report on the communications failsafe status
+      [@bup, :button, 0] -> report_comm_failsafe_status(board_pid)
+      # use the "left" button to set communications failsafe off
+      [@bleft, :button, 0] -> set_comm_failsafe_status(board_pid, 0)
+      # use the "right" button to set communications failsafe on
+      [@bright, :button, 0] -> set_comm_failsafe_status(board_pid, 1)
       # use the "select" button to shut down the raspi
       [@bselect, :button, 0] -> halt_raspi(board_pid)
       # use the PS button to stop the motors
@@ -191,6 +197,16 @@ defmodule Mborg.Mborg.JstickBoard do
   defp show_board_voltage(pid) do
     voltage = Board.get_battery_reading(pid)
     IO.puts("ThunderBorg board voltage: #{(round(voltage*100))/100}")
+  end
+  
+  defp report_comm_failsafe_status(pid) do
+    <<_, status>> = Board.get_comm_failsafe(pid)
+    IO.puts("Communications Failsafe Status: #{status}")
+  end
+  
+  defp set_comm_failsafe_status(pid, new_state) do
+    Board.set_comm_failsafe(pid, new_state)
+    report_comm_failsafe_status(pid)
   end
 
   defp halt_raspi(pid) do

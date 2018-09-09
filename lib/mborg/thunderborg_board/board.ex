@@ -40,7 +40,7 @@ defmodule Mborg.Mborg.Board do
   @command_set_all_fwd         17    # Set all motors PWM rate in a forwards direction
   @command_set_all_rev         18    # Set all motors PWM rate in a reverse direction
   @command_set_failsafe        19    # Set the failsafe flag, turns the motors off if communication is interrupted
-  # @command_get_failsafe        20    # Get the failsafe flag
+  @command_get_failsafe        20    # Get the failsafe flag
   @command_get_batt_volt       21    # Get the battery voltage reading
   # @command_set_batt_limits     22    # Set the battery monitoring limits
   # @command_get_batt_limits     23    # Get the battery monitoring limits
@@ -129,6 +129,17 @@ defmodule Mborg.Mborg.Board do
   def set_comm_failsafe(pid, flag, addr \\ @command_set_failsafe) do
     I2C.write(pid, <<addr, flag>>)
   end
+  
+  @doc """
+  Get the communications failsafe status. Returns true if failsafe enabled 
+  (when enabled, the motors turn off unless a command is received at least
+  every 1/4 second)
+  """
+  def get_comm_failsafe(pid, addr \\ @command_get_failsafe) do
+    I2C.write(pid, <<addr>>)
+    I2C.read(pid, 2)
+  end
+  
 
   @doc """
   Set the drive level and direction for motor n.
