@@ -42,8 +42,8 @@ defmodule Mborg.Mborg.Board do
   @command_set_failsafe        19    # Set the failsafe flag, turns the motors off if communication is interrupted
   @command_get_failsafe        20    # Get the failsafe flag
   @command_get_batt_volt       21    # Get the battery voltage reading
-  # @command_set_batt_limits     22    # Set the battery monitoring limits
-  # @command_get_batt_limits     23    # Get the battery monitoring limits
+  @command_set_batt_limits     22    # Set the battery monitoring limits
+  @command_get_batt_limits     23    # Get the battery monitoring limits
   # @command_write_external_led  24    # Write a 32bit pattern out to SK9822 / APA102C
   # @command_get_id              0x99  # Get the board identifier
   # @command_set_i2c_add         0xAA  # Set a new I2C address
@@ -69,9 +69,35 @@ defmodule Mborg.Mborg.Board do
   """
   def get_battery_reading(pid, addr \\ @command_get_batt_volt) do
     I2C.write(pid, <<addr>>)
-    <<21, x, y>> = I2C.read(pid, 3)
+    <<_addr, x, y>> = I2C.read(pid, 3)
     (x * 256 + y) / @command_analog_max * @voltage_pin_max + @voltage_pin_correction
   end
+  
+  defp round_volt_reading(value) do
+    (round(value * @voltage_pin_max / 255) * 100)/100
+  end
+  
+  @doc """
+  Query the ThunderBorg board for the current battery monitoring limits used for setting the LED colour.
+  The values are between 0 and 36.3 V. LED colours range from full red at minimum or below, yellow
+  half way, and full green at maximum or higher.
+  """
+  def get_battery_monitor_limits(pid, addr \\ @command_get_batt_limits) do
+    I2C.write(pid, <<addr>>)
+    <<_addr, min, max>> = I2C.read(pid, 3)
+    IO.puts("ThunderBorg Board LED voltage monitor: lower limit #{round_volt_reading(min)} V, upper limit #{round_volt_reading(max)} V")
+  end
+  
+  @doc """
+  Set the ThunderBorg board's battery monitoring limits, used for setting the LED colour. These values
+  will be stored in EEPROM, and are therefore reloaded when the board is powered up again.
+  """
+  def set_battery_monitor_limits(pid, min, max, addr \\ @command_set_batt_limits) do
+    I2C.write(pid, <<addr, min, max>>)
+    Process.sleep(2000)
+    get_battery_monitor_limits(pid)
+  end
+    
 
   @doc """
   Toggle the state of the ThunderBorg board setting for controlling LED colour by battery voltage.

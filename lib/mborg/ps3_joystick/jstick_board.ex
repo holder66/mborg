@@ -3,8 +3,7 @@ defmodule Mborg.Mborg.JstickBoard do
 
   alias Joystick
   alias Joystick.Event
-  alias Mborg.Mborg.Board
-  alias Mborg.Mborg.ControllerState
+  alias Mborg.Mborg.{Board, ControllerState, CommandTimer}
 
   # start with: iex(1)> {:ok, js} = Mborg.JstickBoard.start_link([])
 
@@ -50,10 +49,10 @@ defmodule Mborg.Mborg.JstickBoard do
   @upispositive 1
   @rightispositive -1
   
-  # Attributes for MonsterBorg physics
+  # Attributes for MonsterBorg physics: adjust these values to control turning radius at different speeds
   # @turnthreshold (0.03 * @maxmotorpower)
-  @turnparameter 0.1
-  @turnpowerparameter 0.2
+  @turnparameter 0.2
+  @turnpowerparameter 0.5
 
   def run do
     {:ok, _pid} = start_link([])
@@ -69,9 +68,15 @@ defmodule Mborg.Mborg.JstickBoard do
     # start the thunderborg board
     pid = Board.start_link
     {:ok, js} = Joystick.start_link(0, self())
+    # start the command timer process
+    # {:ok, timer_pid} = CommandTimer.start_link()
+    # CommandTimer.get_events()
+    # IO.inspect ["command timer pid: ", timer_pid]
     IO.puts "Connecting to the PS3 controller"
     state = %{js: js, board: pid}
     IO.puts "Firing up the Thunderborg Board"
+    Board.get_battery_monitor_limits(pid)
+    # Board.set_battery_monitor_limits(pid, 77, 85)
     {:ok, state}
   end
 
@@ -105,6 +110,12 @@ defmodule Mborg.Mborg.JstickBoard do
       _ -> true
     end
 
+    {:noreply, state}
+  end
+  
+  def handle_info({:event,_}, state) do
+    IO.inspect System.monotonic_time(10)
+    
     {:noreply, state}
   end
 
@@ -146,14 +157,14 @@ defmodule Mborg.Mborg.JstickBoard do
 
   defp operate_motors(board_pid, forwarddirection, forwardpower, turndirection, turnpower) do
     # if if turn power is less than @turnthreshold, run both motors with one command
+    # IO.inspect System.monotonic_time(10)
     if turnpower == 0 do
-      Board.command_motor(board_pid, 0, forwarddirection, motor_power_value(forwardpower))
+      Board.command_motor(board_pid, 0, forwarddirection, motor_power_value(constrain(forwardpower)))
     else
       {leftdir, leftpwr, rightdir, rightpwr} = monsterborg_physics(forwarddirection, forwardpower, turndirection, turnpower)
       Board.command_motor(board_pid, @leftmotor, leftdir, motor_power_value(leftpwr))
       Board.command_motor(board_pid, @rightmotor, rightdir, motor_power_value(rightpwr))
     end
-    # IO.inspect [System.monotonic_time(10), leftdir, leftpwr, rightdir, rightpwr]
   end
   
   defp motor_power_value(value), do: round(value * 2.55)
@@ -171,6 +182,7 @@ defmodule Mborg.Mborg.JstickBoard do
     poweradjust = round(turnpower * @turnpowerparameter + forwardpower * @turnparameter)
     leftpwr = constrain(forwardpower - turndirection * poweradjust)
     rightpwr = constrain(forwardpower + turndirection * poweradjust)
+    # IO.inspect [leftpwr, rightpwr]
     {forwarddirection, leftpwr, forwarddirection, rightpwr}
   end
   

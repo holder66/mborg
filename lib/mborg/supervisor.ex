@@ -1,6 +1,6 @@
 defmodule Mborg.Mborg.Supervisor do
   use Supervisor
-  alias Mborg.Mborg.{JstickBoard, Board, ControllerState}
+  alias Mborg.Mborg.{ControllerState, CommandTimer}
 
   def start_link do
   Supervisor.start_link(__MODULE__, [])
@@ -9,6 +9,7 @@ defmodule Mborg.Mborg.Supervisor do
   def init(_) do
     children = [
       worker(ControllerState, []),
+      # worker(CommandTimer, []),
       worker(Picam.Camera, [])
       # worker(Board, []),
       # worker(JstickBoard, [])
