@@ -189,7 +189,7 @@ defmodule Mborg.Mborg.Board do
   end
 
   @doc """
-  Stop everything!
+  Stop all motors!
   """
   def off(pid) do
     I2C.write(pid, <<@command_all_off, 0>>)

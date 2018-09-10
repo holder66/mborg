@@ -141,8 +141,13 @@ defmodule Mborg.Mborg.JstickBoard do
   # direction and power, and save the new state
   defp do_turn_event(board_pid, turndirection, turnpower) do
     {forwarddirection, forwardpower, _oldturndirection, _oldturnpower} = ControllerState.get_state()
-    operate_motors(board_pid, forwarddirection, forwardpower, turndirection, turnpower)
-    ControllerState.set_state({forwarddirection, forwardpower, turndirection, turnpower})
+    # if forward power is 0, stop the motors
+    if forwardpower < 2 do
+      Board.off(board_pid)
+    else
+      operate_motors(board_pid, forwarddirection, forwardpower, turndirection, turnpower)
+      ControllerState.set_state({forwarddirection, forwardpower, turndirection, turnpower})
+    end
   end
   
   # for a forward or backward joystick event, get the previous state, operate
