@@ -30,8 +30,6 @@ if it's still connected, and restart with Mborg.run. Waiting for a few minutes b
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
-
   1. Add `mborg` to your list of dependencies in `mix.exs`:
 
     ```elixir
