@@ -51,8 +51,8 @@ defmodule Mborg.Mborg.JstickBoard do
   
   # Attributes for MonsterBorg physics: adjust these values to control turning radius at different speeds
   # @turnthreshold (0.03 * @maxmotorpower)
-  @turnparameter 0.2
-  @turnpowerparameter 0.4
+  @turnparameter 0.15
+  @turnpowerparameter 0.35
   @adjustparam 0.05
 
   def run do
@@ -106,7 +106,7 @@ defmodule Mborg.Mborg.JstickBoard do
       # use the "select" button to shut down the raspi
       [@bselect, :button, 0] -> halt_raspi(board_pid)
       # use the PS button to stop the motors
-      [@bps, :button, 1] -> stop_motors(board_pid, state)
+      [@bps, :button, 1] -> stop_motors(board_pid)
       # on button release, go back to monitoring battery voltage
       [_, :button, 0] -> leds_monitor_battery(board_pid)
       _ -> true
@@ -162,9 +162,10 @@ defmodule Mborg.Mborg.JstickBoard do
   defp do_turn_event(board_pid, turndirection, turnpower) do
     # IO.inspect ["turn: ", turndirection, turnpower]
     {forwarddirection, forwardpower, _oldturndirection, _oldturnpower} = ControllerState.get_state()
-    # if forward power is 0, stop the motors
+    # if forward power is close to 0, stop the motors
     if forwardpower < 2 do
-      Board.off(board_pid)
+      stop_motors(board_pid)
+      # Board.off(board_pid)
     else
       operate_motors(board_pid, forwarddirection, forwardpower, turndirection, turnpower)
       ControllerState.set_state({forwarddirection, forwardpower, turndirection, turnpower})
@@ -176,8 +177,11 @@ defmodule Mborg.Mborg.JstickBoard do
   # direction and power, and save the new state
   defp do_forward_event(board_pid, forwarddirection, forwardpower) do
     # IO.inspect ["fwd  ", forwarddirection, forwardpower]
-    # if forwardpower is 0, do nothing
-    if forwardpower != 0 do
+    # if forwardpower is close to 0, stop the motors
+    if forwardpower < 0 do
+      stop_motors(board_pid)
+      # Board.off(board_pid)
+    else
       {_oldforwarddirection, _oldforwardpower, turndirection, turnpower} = ControllerState.get_state()
       operate_motors(board_pid, forwarddirection, forwardpower, turndirection, turnpower)
       ControllerState.set_state({forwarddirection, forwardpower, turndirection, turnpower})
@@ -277,9 +281,11 @@ defmodule Mborg.Mborg.JstickBoard do
     System.cmd("sudo", ["halt"])
   end
 
-  defp stop_motors(board_pid, _state) do
-    IO.puts("Stopping all motors!")
+  defp stop_motors(board_pid) do
+    # IO.puts("Stopping all motors!")
     Board.off(board_pid)
+    # reset the controller state
+    ControllerState.set_state({0, 0, 0, 0})
     # stop_joystick(state)
   end
 
