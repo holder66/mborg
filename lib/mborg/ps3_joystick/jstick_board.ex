@@ -88,7 +88,8 @@ defmodule Mborg.Mborg.JstickBoard do
     case event do
       # if an axis event, do motors
       [_, :axis, _] -> control_motors(board_pid, event)
-      # use the arrow buttons to adjust the physics parameters up and down;
+      # use the arrow buttons to adjust the physics parameters up and down; left and right
+      # arrows control the turnparameter state; up and down buttons for the turnpowerparameter.
       # [@btriangle, :button, 1] -> set_LEDs(board_pid, :green)
       # [@bx, :button, 1] -> set_LEDs(board_pid, :blue)
       # [@bsquare, :button, 1] -> set_LEDs(board_pid, :pink)
