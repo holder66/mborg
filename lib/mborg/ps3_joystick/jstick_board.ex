@@ -3,7 +3,7 @@ defmodule Mborg.Mborg.JstickBoard do
 
   alias Joystick
   alias Joystick.Event
-  alias Mborg.Mborg.{Board, ControllerState, CommandTimer}
+  alias Mborg.Mborg.{Board, ControllerState, CommandTimer, PhysicsParams}
 
   # start with: iex(1)> {:ok, js} = Mborg.JstickBoard.start_link([])
 
@@ -53,6 +53,7 @@ defmodule Mborg.Mborg.JstickBoard do
   # @turnthreshold (0.03 * @maxmotorpower)
   @turnparameter 0.2
   @turnpowerparameter 0.4
+  @adjustparam 0.05
 
   def run do
     {:ok, _pid} = start_link([])
@@ -68,15 +69,15 @@ defmodule Mborg.Mborg.JstickBoard do
     # start the thunderborg board
     pid = Board.start_link
     {:ok, js} = Joystick.start_link(0, self())
-    # start the command timer process
-    # {:ok, timer_pid} = CommandTimer.start_link()
-    # CommandTimer.get_events()
-    # IO.inspect ["command timer pid: ", timer_pid]
     IO.puts "Connecting to the PS3 controller"
     state = %{js: js, board: pid}
     IO.puts "Firing up the Thunderborg Board"
     Board.get_battery_monitor_limits(pid)
     # Board.set_battery_monitor_limits(pid, 77, 85)
+    # Restore physics parameter values to their defaults
+    # PhysicsParams.set_state({@turnparameter, @turnpowerparameter})
+#     {turnparameter, turnpowerparameter} = PhysicsParams.get_state()
+#     IO.puts("Default turnparameter: #{turnparameter}, turnpowerparameter: #{turnpowerparameter}")
     {:ok, state}
   end
 
@@ -90,10 +91,10 @@ defmodule Mborg.Mborg.JstickBoard do
       [_, :axis, _] -> control_motors(board_pid, event)
       # use the arrow buttons to adjust the physics parameters up and down; left and right
       # arrows control the turnparameter state; up and down buttons for the turnpowerparameter.
-      # [@btriangle, :button, 1] -> set_LEDs(board_pid, :green)
-      # [@bx, :button, 1] -> set_LEDs(board_pid, :blue)
-      # [@bsquare, :button, 1] -> set_LEDs(board_pid, :pink)
-      # [@bcircle, :button, 1] -> set_LEDs(board_pid, :red)
+      [@bleft, :button, 1] -> adjust_parameter(board_pid, :turnparameter, :down)
+      [@bright, :button, 1] -> adjust_parameter(board_pid, :turnparameter, :up)
+      [@bup, :button, 1] -> adjust_parameter(board_pid, :turnpowerparameter, :up)
+      [@bdown, :button, 1] -> adjust_parameter(board_pid, :turnpowerparameter, :down)
       # use the "X" button to report battery voltage
       [@bx, :button, 0] -> show_board_voltage(board_pid)
       # use the "triangle" button to report on the communications failsafe status
@@ -118,6 +119,24 @@ defmodule Mborg.Mborg.JstickBoard do
     IO.inspect System.monotonic_time(10)
     
     {:noreply, state}
+  end
+  
+  defp adjust_parameter(board_pid, parameter, change) do
+    {turnparameter, turnpowerparameter} = PhysicsParams.get_state()
+    # IO.inspect [turnparameter, turnpowerparameter]
+    case {parameter, change} do
+      {:turnparameter, :up} ->
+        PhysicsParams.set_state({turnparameter + @adjustparam, turnpowerparameter})
+      {:turnparameter, :down} ->
+        PhysicsParams.set_state({turnparameter - @adjustparam, turnpowerparameter})
+      {:turnpowerparameter, :up} ->
+        PhysicsParams.set_state({turnparameter, turnpowerparameter + @adjustparam})
+      {:turnpowerparameter, :down} ->
+        PhysicsParams.set_state({turnparameter, turnpowerparameter - @adjustparam})
+      {_,_} -> true
+    end
+    {turnparameter, turnpowerparameter} = PhysicsParams.get_state()
+    IO.puts("Updated turnparameter: #{turnparameter}, turnpowerparameter: #{turnpowerparameter}")
   end
 
   defp control_motors(board_pid, [number, _, value]) do
@@ -190,7 +209,10 @@ defmodule Mborg.Mborg.JstickBoard do
     # to facilitate playing around with the physics, we will use integers from 0 to 100
     # for power values
     # IO.inspect ["physics: ", forwarddirection, forwardpower, turndirection, turnpower]
-    poweradjust = round(turnpower * @turnpowerparameter + forwardpower * @turnparameter)
+    # get values for turnparameter and turnpowerparameter
+    {turnparameter, turnpowerparameter} = PhysicsParams.get_state()
+    # IO.inspect [turnparameter, turnpowerparameter]
+    poweradjust = round(turnpower * turnpowerparameter + forwardpower * turnparameter)
     leftpwr = constrain(forwardpower - turndirection * poweradjust)
     rightpwr = constrain(forwardpower + turndirection * poweradjust)
     # IO.inspect [leftpwr, rightpwr]
