@@ -52,7 +52,7 @@ defmodule Mborg.Mborg.JstickBoard do
   # Attributes for MonsterBorg physics: adjust these values to control turning radius at different speeds
   # @turnthreshold (0.03 * @maxmotorpower)
   @turnparameter 0.2
-  @turnpowerparameter 0.5
+  @turnpowerparameter 0.4
 
   def run do
     {:ok, _pid} = start_link([])
@@ -88,19 +88,19 @@ defmodule Mborg.Mborg.JstickBoard do
     case event do
       # if an axis event, do motors
       [_, :axis, _] -> control_motors(board_pid, event)
-      # while a shape button is pressed, set the LEDs the corresponding color;
-      [@btriangle, :button, 1] -> set_LEDs(board_pid, :green)
-      [@bx, :button, 1] -> set_LEDs(board_pid, :blue)
-      [@bsquare, :button, 1] -> set_LEDs(board_pid, :pink)
-      [@bcircle, :button, 1] -> set_LEDs(board_pid, :red)
-      # use the "down" button to report battery voltage
-      [@bdown, :button, 0] -> show_board_voltage(board_pid)
-      # use the "up" button to report on the communications failsafe status
-      [@bup, :button, 0] -> report_comm_failsafe_status(board_pid)
-      # use the "left" button to set communications failsafe off
-      [@bleft, :button, 0] -> set_comm_failsafe_status(board_pid, 0)
-      # use the "right" button to set communications failsafe on
-      [@bright, :button, 0] -> set_comm_failsafe_status(board_pid, 1)
+      # use the arrow buttons to adjust the physics parameters up and down;
+      # [@btriangle, :button, 1] -> set_LEDs(board_pid, :green)
+      # [@bx, :button, 1] -> set_LEDs(board_pid, :blue)
+      # [@bsquare, :button, 1] -> set_LEDs(board_pid, :pink)
+      # [@bcircle, :button, 1] -> set_LEDs(board_pid, :red)
+      # use the "X" button to report battery voltage
+      [@bx, :button, 0] -> show_board_voltage(board_pid)
+      # use the "triangle" button to report on the communications failsafe status
+      [@btriangle, :button, 0] -> report_comm_failsafe_status(board_pid)
+      # use the "square" button to set communications failsafe off
+      [@bsquare, :button, 0] -> set_comm_failsafe_status(board_pid, 0)
+      # use the "circle" button to set communications failsafe on
+      [@bcircle, :button, 0] -> set_comm_failsafe_status(board_pid, 1)
       # use the "select" button to shut down the raspi
       [@bselect, :button, 0] -> halt_raspi(board_pid)
       # use the PS button to stop the motors
@@ -140,6 +140,7 @@ defmodule Mborg.Mborg.JstickBoard do
   # using the previous forward direction and power with the new turn
   # direction and power, and save the new state
   defp do_turn_event(board_pid, turndirection, turnpower) do
+    # IO.inspect ["turn: ", turndirection, turnpower]
     {forwarddirection, forwardpower, _oldturndirection, _oldturnpower} = ControllerState.get_state()
     # if forward power is 0, stop the motors
     if forwardpower < 2 do
@@ -154,9 +155,13 @@ defmodule Mborg.Mborg.JstickBoard do
   # the motors using the previous turn direction and power and the new forward/backward
   # direction and power, and save the new state
   defp do_forward_event(board_pid, forwarddirection, forwardpower) do
-    {_oldforwarddirection, _oldforwardpower, turndirection, turnpower} = ControllerState.get_state()
-    operate_motors(board_pid, forwarddirection, forwardpower, turndirection, turnpower)
-    ControllerState.set_state({forwarddirection, forwardpower, turndirection, turnpower})
+    # IO.inspect ["fwd  ", forwarddirection, forwardpower]
+    # if forwardpower is 0, do nothing
+    if forwardpower != 0 do
+      {_oldforwarddirection, _oldforwardpower, turndirection, turnpower} = ControllerState.get_state()
+      operate_motors(board_pid, forwarddirection, forwardpower, turndirection, turnpower)
+      ControllerState.set_state({forwarddirection, forwardpower, turndirection, turnpower})
+    end
   end
     
 
