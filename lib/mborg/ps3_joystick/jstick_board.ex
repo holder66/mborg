@@ -1,4 +1,18 @@
 defmodule Mborg.Mborg.JstickBoard do
+  @moduledoc """
+  The PS3 Controller buttons and joysticks do the following:
+  left joystick: move forward and back to control forward or reverse power
+  right joystick: move left or right to steer the MonsterBorg
+  Button actions:
+  select: shuts down the Monsterborg
+  PS: stops both motors
+  start: displays this help text on the monitor
+  X: display battery voltage
+  triangle: display communications failsafe status
+  circle: toggle communications failsafe status
+  up and down arrows: adjust turnpowerparameter value
+  left and right arrows: adjust turnparameter value
+  """
   use GenServer
 
   alias Joystick
@@ -27,7 +41,7 @@ defmodule Mborg.Mborg.JstickBoard do
 #   @bl2 6
 #   @br2 7
     @bselect 8
-#   @bstart 9
+    @bstart 9
     @bps 10
 #   @bljstick 11
 #   @brjstick 12
@@ -97,6 +111,8 @@ defmodule Mborg.Mborg.JstickBoard do
       [@bdown, :button, 1] -> adjust_parameter(board_pid, :turnpowerparameter, :down)
       # use the "X" button to report battery voltage
       [@bx, :button, 0] -> show_board_voltage(board_pid)
+      # use the "start" button to display help information on stdout
+      [@bstart, :button, 1] -> display_controller_help
       # use the "triangle" button to report on the communications failsafe status
       [@btriangle, :button, 0] -> report_comm_failsafe_status(board_pid)
       # use the "circle" button to toggle communications failsafe status
@@ -219,6 +235,10 @@ defmodule Mborg.Mborg.JstickBoard do
     rightpwr = constrain(forwardpower + turndirection * poweradjust)
     # IO.inspect [leftpwr, rightpwr]
     {forwarddirection, leftpwr, forwarddirection, rightpwr}
+  end
+
+  defp display_controller_help do
+    IO.puts @moduledoc
   end
 
   # constrain the upper limit for power to 95%, so as to limit the voltage drop to the processor
