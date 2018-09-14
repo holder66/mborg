@@ -12,15 +12,15 @@ Hamming distances and neural network designs.
 1. Plug your PS3 controller in to one of the USB ports on the raspi.
 2. Power up the ThunderBorg board with the tiny switch on the board. Wait a couple of minutes.
 3. The four lights on the controller should be blinking slowly. Press the PS
-button on the controller until light one comes on steady.
+button on the controller. The four lights should blink rapidly and then stop, with
+one light remaining on (or possibly none).
 4. In a terminal on your computer, ssh in to the MonsterBorg, eg: `ssh pi@10.0.1.60`
 5. Switch directories to mborg: pi@monsterborg:~ $ `cd mborg`
-6. Compile the project and open IEx: pi@monsterborg:~/mborg $ `iex -S mix`. 
+6. Compile the project and open IEx: pi@monsterborg:~/mborg $ `iex -S mix`.
 7. iex(1)> `Mborg.run`
-8. Test for correct functioning by using the four right-hand buttons marked with
-a triangle, circle, etc to flash the ThunderBorg LEDs the color corresponding to
-the color on the button.
-9. Use the left joystick to control forwards and backwards motion, and the right joystick (moving from side to side) to control turning.
+8. Test for correct functioning by pressing the right-hand button marked with a purple "X".
+This should display a message in your terminal giving the Thunderborg board voltage.
+9. Press the "start" button to get a help message in your terminal.
 10. You should now be able to unplug the controller from the raspi. This may
 crash the process. If so, restart with Mborg.run. The controller should now
 operate the MonsterBorg over bluetooth.
