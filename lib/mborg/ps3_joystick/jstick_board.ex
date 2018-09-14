@@ -89,9 +89,10 @@ defmodule Mborg.Mborg.JstickBoard do
     Board.get_battery_monitor_limits(pid)
     # Board.set_battery_monitor_limits(pid, 77, 85)
     # Restore physics parameter values to their defaults
-    # PhysicsParams.set_state({@turnparameter, @turnpowerparameter})
-#     {turnparameter, turnpowerparameter} = PhysicsParams.get_state()
-#     IO.puts("Default turnparameter: #{turnparameter}, turnpowerparameter: #{turnpowerparameter}")
+    PhysicsParams.set_state({@turnparameter, @turnpowerparameter})
+    Process.sleep(1000)
+    # {turnparameter, turnpowerparameter} = PhysicsParams.get_state()
+    # IO.puts("Default turnparameter: #{turnparameter}, turnpowerparameter: #{turnpowerparameter}")
     {:ok, state}
   end
 
@@ -105,14 +106,14 @@ defmodule Mborg.Mborg.JstickBoard do
       [_, :axis, _] -> control_motors(board_pid, event)
       # use the arrow buttons to adjust the physics parameters up and down; left and right
       # arrows control the turnparameter state; up and down buttons for the turnpowerparameter.
-      [@bleft, :button, 1] -> adjust_parameter(board_pid, :turnparameter, :down)
-      [@bright, :button, 1] -> adjust_parameter(board_pid, :turnparameter, :up)
-      [@bup, :button, 1] -> adjust_parameter(board_pid, :turnpowerparameter, :up)
-      [@bdown, :button, 1] -> adjust_parameter(board_pid, :turnpowerparameter, :down)
+      [@bleft, :button, 1] -> adjust_parameter(:turnparameter, :down)
+      [@bright, :button, 1] -> adjust_parameter(:turnparameter, :up)
+      [@bup, :button, 1] -> adjust_parameter(:turnpowerparameter, :up)
+      [@bdown, :button, 1] -> adjust_parameter(:turnpowerparameter, :down)
       # use the "X" button to report battery voltage
       [@bx, :button, 0] -> show_board_voltage(board_pid)
       # use the "start" button to display help information on stdout
-      [@bstart, :button, 1] -> display_controller_help
+      [@bstart, :button, 1] -> display_controller_help()
       # use the "triangle" button to report on the communications failsafe status
       [@btriangle, :button, 0] -> report_comm_failsafe_status(board_pid)
       # use the "circle" button to toggle communications failsafe status
@@ -135,7 +136,7 @@ defmodule Mborg.Mborg.JstickBoard do
     {:noreply, state}
   end
 
-  defp adjust_parameter(board_pid, parameter, change) do
+  defp adjust_parameter(parameter, change) do
     {turnparameter, turnpowerparameter} = PhysicsParams.get_state()
     # IO.inspect [turnparameter, turnpowerparameter]
     case {parameter, change} do

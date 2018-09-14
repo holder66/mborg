@@ -10,7 +10,7 @@ defmodule Mborg do
   """
 
   use Application
-  
+
   import Picam
 
   def run do
