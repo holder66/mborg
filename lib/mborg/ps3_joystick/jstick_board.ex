@@ -8,7 +8,7 @@ defmodule Mborg.Mborg.JstickBoard do
   # start with: iex(1)> {:ok, js} = Mborg.JstickBoard.start_link([])
 
   # stop a running joystick genserver process with: iex(2)> Joystick.stop(js)
-  
+
   # Motor Control mappings
   @leftmotor 2
   @rightmotor 1
@@ -21,7 +21,7 @@ defmodule Mborg.Mborg.JstickBoard do
     @bx 0
     @bcircle 1
     @btriangle 2
-    @bsquare 3
+    # @bsquare 3
 #   @bl1 4
 #   @br1 5
 #   @bl2 6
@@ -37,18 +37,18 @@ defmodule Mborg.Mborg.JstickBoard do
     @bright 16
 
   # Mappings for PS3 controller axes:
-  
+
   # @axljsticklr 0
     @axljstickud 1
   # @axl2 2
     @axrjsticklr 3
   # @axrjstickud 4
   # @axr2 5
-  
+
   # Attributes for joystick direction
   @upispositive 1
   @rightispositive -1
-  
+
   # Attributes for MonsterBorg physics: adjust these values to control turning radius at different speeds
   # @turnthreshold (0.03 * @maxmotorpower)
   @turnparameter 0.15
@@ -99,10 +99,8 @@ defmodule Mborg.Mborg.JstickBoard do
       [@bx, :button, 0] -> show_board_voltage(board_pid)
       # use the "triangle" button to report on the communications failsafe status
       [@btriangle, :button, 0] -> report_comm_failsafe_status(board_pid)
-      # use the "square" button to set communications failsafe off
-      [@bsquare, :button, 0] -> set_comm_failsafe_status(board_pid, 0)
-      # use the "circle" button to set communications failsafe on
-      [@bcircle, :button, 0] -> set_comm_failsafe_status(board_pid, 1)
+      # use the "circle" button to toggle communications failsafe status
+      [@bcircle, :button, 0] -> toggle_comm_failsafe_status(board_pid)
       # use the "select" button to shut down the raspi
       [@bselect, :button, 0] -> halt_raspi(board_pid)
       # use the PS button to stop the motors
@@ -114,13 +112,13 @@ defmodule Mborg.Mborg.JstickBoard do
 
     {:noreply, state}
   end
-  
+
   def handle_info({:event,_}, state) do
     IO.inspect System.monotonic_time(10)
-    
+
     {:noreply, state}
   end
-  
+
   defp adjust_parameter(board_pid, parameter, change) do
     {turnparameter, turnpowerparameter} = PhysicsParams.get_state()
     # IO.inspect [turnparameter, turnpowerparameter]
@@ -155,7 +153,7 @@ defmodule Mborg.Mborg.JstickBoard do
       # _ -> IO.inspect "unused axis event"
     end
   end
-  
+
   # for a turn joystick event, get the previous state, operate the motors
   # using the previous forward direction and power with the new turn
   # direction and power, and save the new state
@@ -171,7 +169,7 @@ defmodule Mborg.Mborg.JstickBoard do
       ControllerState.set_state({forwarddirection, forwardpower, turndirection, turnpower})
     end
   end
-  
+
   # for a forward or backward joystick event, get the previous state, operate
   # the motors using the previous turn direction and power and the new forward/backward
   # direction and power, and save the new state
@@ -187,7 +185,7 @@ defmodule Mborg.Mborg.JstickBoard do
       ControllerState.set_state({forwarddirection, forwardpower, turndirection, turnpower})
     end
   end
-    
+
 
   defp operate_motors(board_pid, forwarddirection, forwardpower, turndirection, turnpower) do
     # if if turn power is less than @turnthreshold, run both motors with one command
@@ -200,15 +198,15 @@ defmodule Mborg.Mborg.JstickBoard do
       Board.command_motor(board_pid, @rightmotor, rightdir, motor_power_value(rightpwr))
     end
   end
-  
+
   defp motor_power_value(value), do: round(value * 2.55)
-  
+
   defp monsterborg_physics(forwarddirection, forwardpower, turndirection, turnpower) do
-    # when turnpower is greater than threshold, decrease power on the turning side, and 
+    # when turnpower is greater than threshold, decrease power on the turning side, and
     # increase power on the opposide side, up to the maximum for the motors.
     # the amount of increase/decrease is typically balanced, but we may need a "trim".
     # coefficient for increase/decrease can be varied.
-    # consider using a button to make "tank" type turns, where the direction of the 
+    # consider using a button to make "tank" type turns, where the direction of the
     # motors on the opposide side of the turn reverses.
     # to facilitate playing around with the physics, we will use integers from 0 to 100
     # for power values
@@ -222,7 +220,7 @@ defmodule Mborg.Mborg.JstickBoard do
     # IO.inspect [leftpwr, rightpwr]
     {forwarddirection, leftpwr, forwarddirection, rightpwr}
   end
-  
+
   # constrain the upper limit for power to 95%, so as to limit the voltage drop to the processor
   defp constrain(value, lowerlimit \\ 0, upperlimit \\ 95) do
     cond do
@@ -231,7 +229,7 @@ defmodule Mborg.Mborg.JstickBoard do
       true -> value
     end
   end
-  
+
   defp motor_power(joystickvalue), do: round(abs(joystickvalue)/10)
 
   defp direction(val) do
@@ -263,14 +261,15 @@ defmodule Mborg.Mborg.JstickBoard do
     voltage = Board.get_battery_reading(pid)
     IO.puts("ThunderBorg board voltage: #{(round(voltage*100))/100}")
   end
-  
+
   defp report_comm_failsafe_status(pid) do
     <<_, status>> = Board.get_comm_failsafe(pid)
     IO.puts("Communications Failsafe Status: #{status}")
   end
-  
-  defp set_comm_failsafe_status(pid, new_state) do
-    Board.set_comm_failsafe(pid, new_state)
+
+  defp toggle_comm_failsafe_status(pid) do
+    <<_, status>> = Board.get_comm_failsafe(pid)
+    Board.set_comm_failsafe(pid, abs(status - 1))
     report_comm_failsafe_status(pid)
   end
 
